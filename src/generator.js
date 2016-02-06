@@ -60,10 +60,22 @@ function generate(state) {
   }
 
   const name = state.name;
-  const attributes = state.attributes.join(", ");
+  const compound_simple_attributes = R.partition(x => x.match(/^:.*/), state.attributes);
+  const simple_attributes = compound_simple_attributes[1];
+  const attributes = simple_attributes.join(", ");
+  const compound_attributes = compound_simple_attributes[0];
   const children = parseChildren(state.children);
-
-  return `Html.${name} [${attributes}] ${children}`;
+  if (compound_attributes.length == 0) {
+      return `Html.${name} [${attributes}] ${children}`;
+  } else if (compound_attributes.length == 1 && simple_attributes.length == 0) {
+      return `Html.${name} ${compound_attributes[0].substr(1)} ${children}`;
+  } else {
+      const attributes_string = `[${attributes}]`;
+      const compound_list = [attributes_string, compound_attributes.map(x => x.substr(1)).join(", ")];
+      const all_attributes = compound_list.join(", ");
+      const compound_attributes_str = `(List.concatMap identity [${all_attributes}])`;
+      return `Html.${name} ${compound_attributes_str} ${children}`;
+  }
 }
 
 generate.parseChildrenList = parseChildrenList;

@@ -134,4 +134,64 @@ describe('parser', () => {
         Html.span [] ([Html.text "Hi "] ++ name ++ [Html.text ", ", Html.i [] [Html.text "welcome!"]])`
     );
   });
+
+  it('recognizes an attribute and uses it', () => {
+    expectParsed(`main =
+      let
+        name = [ Html.text "Smith" ]
+      in
+        <span id="foo">Welcome, {:name}</span>`
+    )
+    .toEqual(`main =
+      let
+        name = [ Html.text "Smith" ]
+      in
+        Html.span [Html.Attributes.attribute "id" "foo"] ([Html.text "Welcome, "] ++ name)`
+    );
+  });
+
+  it('uses an atribute list', () => {
+    expectParsed(`main =
+      let
+        name = [ Html.text "Smith" ]
+      in
+        <span {:attributes}>Welcome, {:name}</span>`
+    )
+    .toEqual(`main =
+      let
+        name = [ Html.text "Smith" ]
+      in
+        Html.span attributes ([Html.text "Welcome, "] ++ name)`
+    );
+  });
+
+  it('uses an attribute and an attribute list', () => {
+    expectParsed(`main =
+      let
+        name = [ Html.text "Smith" ]
+      in
+        <span id="bar" {:attributes}>Welcome, {:name}</span>`
+    )
+    .toEqual(`main =
+      let
+        name = [ Html.text "Smith" ]
+      in
+        Html.span (List.concatMap identity [[Html.Attributes.attribute "id" "bar"], attributes]) ([Html.text "Welcome, "] ++ name)`
+    );
+  });
+
+  it('uses attributes and attribute lists', () => {
+    expectParsed(`main =
+      let
+        name = [ Html.text "Smith" ]
+      in
+	<span id="bar" class="foo" {:attributes1} {:attributes2}>Welcome, {:name}</span>`
+    )
+    .toEqual(`main =
+      let
+        name = [ Html.text "Smith" ]
+      in
+	Html.span (List.concatMap identity [[Html.Attributes.attribute "id" "bar", Html.Attributes.attribute "class" "foo"], attributes1, attributes2]) ([Html.text "Welcome, "] ++ name)`
+    );
+  });
 });
