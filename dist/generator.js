@@ -71,6 +71,18 @@ function generateExpression(expr) {
   throw 'Invalid expression: ' + JSON.stringify(expr);
 }
 
+function generateAttributeList(simple, compound) {
+  var attributes = '[' + simple.join(", ") + ']';
+  if (compound.length == 0) {
+    return attributes;
+  } else if (compound.length == 1 && simple.length == 0) {
+    return compound[0];
+  } else {
+    var all = attributes + ', ' + compound.join(", ");
+    return '(List.concatMap identity [' + all + '])';
+  }
+}
+
 function generate(state) {
   var expr = state.expr;
 
@@ -81,26 +93,21 @@ function generate(state) {
   }
 
   var name = state.name;
-  var compound_simple_attributes = R.partition(function (x) {
+
+  var _R$partition = R.partition(function (x) {
     return x.match(/^:.*/);
   }, state.attributes);
-  var simple_attributes = compound_simple_attributes[1];
-  var attributes = simple_attributes.join(", ");
-  var compound_attributes = compound_simple_attributes[0];
+
+  var _R$partition2 = _slicedToArray(_R$partition, 2);
+
+  var compound = _R$partition2[0];
+  var simple = _R$partition2[1];
+
+  var attributes = generateAttributeList(simple, compound.map(function (x) {
+    return x.substr(1);
+  }));
   var children = parseChildren(state.children);
-  if (compound_attributes.length == 0) {
-    return 'Html.' + name + ' [' + attributes + '] ' + children;
-  } else if (compound_attributes.length == 1 && simple_attributes.length == 0) {
-    return 'Html.' + name + ' ' + compound_attributes[0].substr(1) + ' ' + children;
-  } else {
-    var attributes_string = '[' + attributes + ']';
-    var compound_list = [attributes_string, compound_attributes.map(function (x) {
-      return x.substr(1);
-    }).join(", ")];
-    var all_attributes = compound_list.join(", ");
-    var compound_attributes_str = '(List.concatMap identity [' + all_attributes + '])';
-    return 'Html.' + name + ' ' + compound_attributes_str + ' ' + children;
-  }
+  return 'Html.' + name + ' ' + attributes + ' ' + children;
 }
 
 generate.parseChildrenList = parseChildrenList;

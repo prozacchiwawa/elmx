@@ -51,6 +51,18 @@ function generateExpression(expr) {
   throw `Invalid expression: ${JSON.stringify(expr)}`
 }
 
+function generateAttributeList(simple,compound) {
+  const attributes = `[${simple.join(", ")}]`;
+  if (compound.length == 0) {
+    return attributes;
+  } else if (compound.length == 1 && simple.length == 0) {
+    return compound[0];
+  } else {
+    const all = `${attributes}, ${compound.join(", ")}`;
+    return `(List.concatMap identity [${all}])`;
+  }
+}
+
 function generate(state) {
   const { expr } = state;
   if (expr) return generateExpression(expr);
@@ -60,22 +72,10 @@ function generate(state) {
   }
 
   const name = state.name;
-  const compound_simple_attributes = R.partition(x => x.match(/^:.*/), state.attributes);
-  const simple_attributes = compound_simple_attributes[1];
-  const attributes = simple_attributes.join(", ");
-  const compound_attributes = compound_simple_attributes[0];
+  const [compound,simple] = R.partition(x => x.match(/^:.*/), state.attributes);
+  const attributes = generateAttributeList(simple, compound.map(x => x.substr(1)));
   const children = parseChildren(state.children);
-  if (compound_attributes.length == 0) {
-      return `Html.${name} [${attributes}] ${children}`;
-  } else if (compound_attributes.length == 1 && simple_attributes.length == 0) {
-      return `Html.${name} ${compound_attributes[0].substr(1)} ${children}`;
-  } else {
-      const attributes_string = `[${attributes}]`;
-      const compound_list = [attributes_string, compound_attributes.map(x => x.substr(1)).join(", ")];
-      const all_attributes = compound_list.join(", ");
-      const compound_attributes_str = `(List.concatMap identity [${all_attributes}])`;
-      return `Html.${name} ${compound_attributes_str} ${children}`;
-  }
+  return `Html.${name} ${attributes} ${children}`;
 }
 
 generate.parseChildrenList = parseChildrenList;
