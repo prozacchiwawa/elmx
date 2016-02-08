@@ -134,4 +134,13 @@ describe('parser', () => {
         Html.span [] ([Html.text "Hi "] ++ name ++ [Html.text ", ", Html.i [] [Html.text "welcome!"]])`
     );
   });
+
+  it('allows alternate attribute prefixes', () => {
+    expectParsed(
+      '<T.span T.attr.x="3">'
+    )
+    .toEqual(
+      'T.span [T.attr "x" "3"] []'
+    );
+  });
 });

@@ -119,4 +119,20 @@ describe('generator', () => {
       'Html.span (List.concatMap identity [[Html.Attributes.attribute "id" "bar"], attributes]) []'
     );
   });
+
+  it('allows alternate prefixes', () => {
+    expectGenerated({
+      children: [
+        {
+          parent: {},
+          name: 'T.span',
+          attributes: [],
+          children: []
+        }
+      ]
+    })
+    .toEqual(
+      'T.span [] []'
+    );
+  });
 });

@@ -33,13 +33,21 @@ function reduceAttrs(data, attr) {
   return { depth, items: R.append(item, data.items) };
 }
 
-function mapAttribute(attr) {
-  const [name, value] = attr;
+function prefixedName(name) {
+  const split = name.split('.');
+  const fun = split.slice(0,split.length-1).join(".");
+  const attribute = R.last(split);
+  return fun + ' "' + attribute + '"';
+}
 
-  if (name === '') return expr.get(value);
+function mapAttribute(attr) {
+  const [name_, value] = attr;
+
+  if (name_ === '') return expr.get(value);
 
   var attrValue = expr.get(value) || ('"' + value + '"');
-  return 'Html.Attributes.attribute "'+name+'" '+attrValue;
+  const name = name_.match(/.*\..*/) ? prefixedName(name_) : 'Html.Attributes.attribute "'+name_+'"';
+  return name+' '+attrValue;
 }
 
 function parse(attrs) {

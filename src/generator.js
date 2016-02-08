@@ -71,11 +71,11 @@ function generate(state) {
     return state.children.map(generate).join("");
   }
 
-  const name = state.name;
+  const name = state.name.match(/.*\..*/) ? state.name : `Html.${state.name}`;
   const [compound,simple] = R.partition(x => x ? x.match(/^:.*/) : false, state.attributes);
   const attributes = generateAttributeList(simple, compound.map(x => x.substr(1)));
   const children = parseChildren(state.children);
-  return `Html.${name} ${attributes} ${children}`;
+  return `${name} ${attributes} ${children}`;
 }
 
 generate.parseChildrenList = parseChildrenList;

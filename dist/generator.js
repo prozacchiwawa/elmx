@@ -1,6 +1,6 @@
 'use strict';
 
-var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; })();
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 function _toArray(arr) { return Array.isArray(arr) ? arr : Array.from(arr); }
 
@@ -71,6 +71,18 @@ function generateExpression(expr) {
   throw 'Invalid expression: ' + JSON.stringify(expr);
 }
 
+function generateAttributeList(simple, compound) {
+  var attributes = '[' + simple.join(", ") + ']';
+  if (compound.length == 0) {
+    return attributes;
+  } else if (compound.length == 1 && simple.length == 0) {
+    return compound[0];
+  } else {
+    var all = attributes + ', ' + compound.join(", ");
+    return '(List.concatMap identity [' + all + '])';
+  }
+}
+
 function generate(state) {
   var expr = state.expr;
 
@@ -80,11 +92,22 @@ function generate(state) {
     return state.children.map(generate).join("");
   }
 
-  var name = state.name;
-  var attributes = state.attributes.join(", ");
-  var children = parseChildren(state.children);
+  var name = state.name.match(/.*\..*/) ? state.name : 'Html.' + state.name;
 
-  return 'Html.' + name + ' [' + attributes + '] ' + children;
+  var _R$partition = R.partition(function (x) {
+    return x ? x.match(/^:.*/) : false;
+  }, state.attributes);
+
+  var _R$partition2 = _slicedToArray(_R$partition, 2);
+
+  var compound = _R$partition2[0];
+  var simple = _R$partition2[1];
+
+  var attributes = generateAttributeList(simple, compound.map(function (x) {
+    return x.substr(1);
+  }));
+  var children = parseChildren(state.children);
+  return name + ' ' + attributes + ' ' + children;
 }
 
 generate.parseChildrenList = parseChildrenList;

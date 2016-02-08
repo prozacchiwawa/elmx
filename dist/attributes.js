@@ -1,6 +1,6 @@
 "use strict";
 
-var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; })();
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var R = require("ramda");
 var expr = require("./expression");
@@ -40,16 +40,24 @@ function reduceAttrs(data, attr) {
   return { depth: depth, items: R.append(item, data.items) };
 }
 
+function prefixedName(name) {
+  var split = name.split('.');
+  var fun = split.slice(0, split.length - 1).join(".");
+  var attribute = R.last(split);
+  return fun + ' "' + attribute + '"';
+}
+
 function mapAttribute(attr) {
   var _attr2 = _slicedToArray(attr, 2);
 
-  var name = _attr2[0];
+  var name_ = _attr2[0];
   var value = _attr2[1];
 
-  if (name === '') return expr.get(value);
+  if (name_ === '') return expr.get(value);
 
   var attrValue = expr.get(value) || '"' + value + '"';
-  return 'Html.Attributes.attribute "' + name + '" ' + attrValue;
+  var name = name_.match(/.*\..*/) ? prefixedName(name_) : 'Html.Attributes.attribute "' + name_ + '"';
+  return name + ' ' + attrValue;
 }
 
 function parse(attrs) {
