@@ -70,8 +70,8 @@ function generate(state) {
     return state.children.map(generate).join("");
   }
 
-  const name = state.name.match(/.*\..*/) 
-    ? state.name 
+  const name = state.name.match(/.*\..*/)
+    ? state.name
     : `Html.${state.name}`;
   const [compound,simple] = R.partition(x => x
     ? x.match(/^:.*/)
